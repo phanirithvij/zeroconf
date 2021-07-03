@@ -141,7 +141,7 @@ func (r *Resolver) Resolve(ctx context.Context, name string, qType uint16, entri
 	lables := dns.SplitDomainName(name)
 	domain := lables[len(lables)-1]
 	hostname := trimDot(strings.TrimSuffix(name, domain+"."))
-	params := NewLookupParams("", hostname, domain, entries)
+	params := NewLookupParams("", hostname, domain, false, entries)
 	params.queryType = qType
 	ctx, cancel := context.WithCancel(ctx)
 	go r.c.mainloop(ctx, params)
@@ -190,7 +190,7 @@ func (r *Resolver) ResolveOnce(ctx context.Context, name string, qType uint16) (
 
 // defaultParams returns a default set of QueryParams.
 func defaultParams(service string) *lookupParams {
-	return newLookupParams("", service, "local", false, make(chan *ServiceEntry))
+	return NewLookupParams("", service, "local", false, make(chan *ServiceEntry))
 }
 
 // Client structure encapsulates both IPv4/IPv6 UDP connections.
@@ -383,6 +383,7 @@ func (c *client) mainloop(ctx context.Context, params *lookupParams) {
 			}
 			// reset entries
 			entries = make(map[string]*ServiceEntry)
+			// fmt.Println(entries)
 		}
 	}
 }
@@ -498,8 +499,8 @@ func (c *client) query(params *lookupParams) error {
 	} else if params.Instance != "" { // service instance name lookup
 		serviceInstanceName = fmt.Sprintf("%s.%s", params.Instance, serviceName)
 		m.Question = []dns.Question{
-			dns.Question{serviceInstanceName, dns.TypeSRV, dns.ClassINET},
-			dns.Question{serviceInstanceName, dns.TypeTXT, dns.ClassINET},
+			{serviceInstanceName, dns.TypeSRV, dns.ClassINET},
+			{serviceInstanceName, dns.TypeTXT, dns.ClassINET},
 		}
 	} else if len(params.Subtypes) > 0 { // service subtype browse
 		m.SetQuestion(params.Subtypes[0], dns.TypePTR)

@@ -17,6 +17,10 @@ var (
 	mdnsPort    = 8888
 )
 
+func init() {
+	log.SetFlags(log.Lshortfile | log.LstdFlags)
+}
+
 func startMDNS(ctx context.Context, port int, name, service, domain string, loopback bool) {
 	// 5353 is default mdns port
 	var server *Server
@@ -150,7 +154,7 @@ func TestSubtype(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		go startMDNS(ctx, mdnsPort, mdnsName, mdnsSubtype, mdnsDomain)
+		go startMDNS(ctx, mdnsPort, mdnsName, mdnsSubtype, mdnsDomain, false)
 
 		time.Sleep(time.Second)
 
@@ -191,7 +195,7 @@ func TestSubtype(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		go startMDNS(ctx, mdnsPort, mdnsName, mdnsSubtype, mdnsDomain)
+		go startMDNS(ctx, mdnsPort, mdnsName, mdnsSubtype, mdnsDomain, false)
 
 		time.Sleep(time.Second)
 

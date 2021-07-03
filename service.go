@@ -76,8 +76,8 @@ type lookupParams struct {
 	queryType   uint16 // set in client.Resolve() for host lookup
 }
 
-// newLookupParams constructs a lookupParams.
-func newLookupParams(instance, service, domain string, isBrowsing bool, entries chan<- *ServiceEntry) *lookupParams {
+// NewLookupParams constructs a lookupParams.
+func NewLookupParams(instance, service, domain string, isBrowsing bool, entries chan<- *ServiceEntry) *lookupParams {
 	p := &lookupParams{
 		ServiceRecord: *NewServiceRecord(instance, service, domain),
 		Entries:       entries,

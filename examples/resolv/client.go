@@ -4,15 +4,18 @@ import (
 	"context"
 	"flag"
 	"log"
+	"math"
 	"time"
 
 	"github.com/grandcat/zeroconf"
 )
 
 var (
-	service  = flag.String("service", "_workstation._tcp", "Set the service category to look for devices.")
+	service = flag.String("service", "_tcp", "Set the service category to look for devices.")
+	// service = flag.String("service", "_services._dns-sd._udp", "Set the service category to look for devices.")
+	// service  = flag.String("service", "_workstation._tcp", "Set the service category to look for devices.")
 	domain   = flag.String("domain", "local", "Set the search domain. For local networks, default is fine.")
-	waitTime = flag.Int("wait", 10, "Duration in [s] to run discovery.")
+	waitTime = flag.Int("wait", math.MaxInt32, "Duration in [s] to run discovery.")
 )
 
 func main() {
@@ -27,7 +30,7 @@ func main() {
 	entries := make(chan *zeroconf.ServiceEntry)
 	go func(results <-chan *zeroconf.ServiceEntry) {
 		for entry := range results {
-			log.Println(entry)
+			log.Printf("%+v\n", entry)
 		}
 		log.Println("No more entries.")
 	}(entries)
