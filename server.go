@@ -221,7 +221,7 @@ func (s *Server) shutdown() error {
 	s.shutdownLock.Lock()
 	defer s.shutdownLock.Unlock()
 	if s.isShutdown {
-		return errors.New("Server is already shutdown")
+		return errors.New("server is already shutdown")
 	}
 
 	err := s.unregister()

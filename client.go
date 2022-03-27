@@ -381,9 +381,6 @@ func (c *client) mainloop(ctx context.Context, params *lookupParams) {
 					params.disableProbing()
 				}
 			}
-			// reset entries
-			entries = make(map[string]*ServiceEntry)
-			// fmt.Println(entries)
 		}
 	}
 }
@@ -458,6 +455,7 @@ func (c *client) periodicQuery(ctx context.Context, params *lookupParams) error 
 	bo := backoff.NewExponentialBackOff()
 	bo.InitialInterval = 4 * time.Second
 	bo.MaxInterval = 60 * time.Second
+	bo.MaxElapsedTime = 0
 	bo.Reset()
 
 	var timer *time.Timer
@@ -467,10 +465,6 @@ func (c *client) periodicQuery(ctx context.Context, params *lookupParams) error 
 		}
 	}()
 	for {
-		// Do periodic query.
-		if err := c.query(params); err != nil {
-			return err
-		}
 		// Backoff and cancel logic.
 		wait := bo.NextBackOff()
 		if wait == backoff.Stop {
@@ -490,10 +484,12 @@ func (c *client) periodicQuery(ctx context.Context, params *lookupParams) error 
 			return nil
 		case <-ctx.Done():
 			return ctx.Err()
-
+		}
+		// Do periodic query.
+		if err := c.query(params); err != nil {
+			return err
 		}
 	}
-
 }
 
 // Performs the actual query by service name (browse) or service instance name (lookup),
@@ -510,8 +506,8 @@ func (c *client) query(params *lookupParams) error {
 	} else if params.Instance != "" { // service instance name lookup
 		serviceInstanceName = fmt.Sprintf("%s.%s", params.Instance, serviceName)
 		m.Question = []dns.Question{
-			{serviceInstanceName, dns.TypeSRV, dns.ClassINET},
-			{serviceInstanceName, dns.TypeTXT, dns.ClassINET},
+			{Name: serviceInstanceName, Qtype: dns.TypeSRV, Qclass: dns.ClassINET},
+			{Name: serviceInstanceName, Qtype: dns.TypeTXT, Qclass: dns.ClassINET},
 		}
 	} else if len(params.Subtypes) > 0 { // service subtype browse
 		m.SetQuestion(params.Subtypes[0], dns.TypePTR)
